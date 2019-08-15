@@ -1,0 +1,86 @@
+在一个联网的项目中，服务器和所有的客户端在同一个GameObjects上执行同一个脚本上相同的代码
+
+使用从NetworkBehaviour派生的脚本，角色自己会“自动判断”产生和管理自己相关的GameObject。 LocalPlayer是本地客户端“拥有”的玩家GameObject。当客户端连接到服务器时，NetworkManager会设置权限，并从角色的预制中创建新玩家GameObjects。当客户端连接到服务器时，本地客户端上创建的实例被标记为LocalPlayer。所有其他玩家GameObjects（无论是在服务器还是另一个客户端上）都不标记为LocalPlayer。
+NetworkTransform组件 可以在网络上同步GameObject的变换。因为有isLocalPlayer的判断，本地玩家移动本地玩家的GameObject时，只移动本地的玩家GameObject。然后，其他玩家GameObject的NetworkTransform在服务器和所有客户端之间，同步这个GameObject的变换的位置
+
+UnityEngine.Networking 
+
+[command] property:
+[Command]属性表示下面的函数将被客户端调用，将在服务端上运行。函数中的任何参数都将自动通过Command.Command传递给服务器，只能从本地玩家发送命令。在网络游戏中，会在服务端和所有的客户端产生游戏对象，服务端有专门负责进行管理的底层脚本，当服务端的数据发生变化，就会传输给所有的客户端，它们也随之改变。当客户端发送销毁等指令的时候，服务端也执行这些特殊的函数，并将数据发送给所有的客户端，即便是你刚进入游戏，也能同步即时的状态。
+
+add bulletPrefab to NetworkManager:SpawnInfo(registered spawnable prefabs)
+把子弹交给NetworkManager管理，所以当客户端调用销毁命令，服务器就执行了销毁，并发送给所有客户端子弹销毁命令。
+
+
+[SyncVar] // var to sync between server and clients 
+
+
+
+
+
+########### headless mode ########
+https://noobtuts.com/unity/detect-headless-mode
+
+
+https://gamedev.stackexchange.com/questions/128410/how-to-run-unity-in-headless-mode
+
+
+https://stackoverflow.com/questions/52316136/how-to-run-unity-in-headless-mode-on-linux
+
+https://forum.unity.com/threads/how-to-enable-headless-mode-on-unity-could-build.391136/
+
+
+
+##### standalon headless build #### 
+
+  -batchmode  
+
+Native extension for LinuxStandalone target not found
+
+debugger-agent: Unable to listen on 36
+
+
+
+
+##### unity game of seperate  server & client scripts ##### 
+https://stackoverflow.com/questions/37181651/create-separate-unity-project-for-headless-server
+
+
+#### unty network clients & servers ## 
+
+
+https://docs.unity3d.com/Manual/UNetClientServer.html
+
+
+
+## client hosted server 
+https://smartfoxserver.com/blog/best-of-both-worlds-sfs2x-server-side-unity-for-realtime-games-p1/
+
+## headless Unity as a server 
+
+
+
+
+https://smartfoxserver.com/blog/best-of-both-worlds-sfs2x-server-side-unity-for-realtime-games-p2/
+
+
+#### how to build a Unity dedicated server ?  
+
+
+
+#### what is match making ?   a delay server on Unity cloud to avoid internet delay 
+
+
+
+### how about LAN with Unet ? 
+
+
+
+
+unet dedicated server_client setup assets 
+
+
+
+
+
+

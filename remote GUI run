@@ -1,0 +1,323 @@
+
+
+
+https://askubuntu.com/questions/47642/how-to-start-a-gui-software-on-a-remote-linux-pc-via-ssh
+
+
+(base) ubuntu@ubuntu:~$ ssh -X user@tsuipc '/home/user/unetDemo/demo.x86_64'
+X Error of failed request:  BadValue (integer parameter out of range for operation)
+  Major opcode of failed request:  154 (GLX)
+  Minor opcode of failed request:  3 (X_GLXCreateContext)
+  Value in failed request:  0x0
+  Serial number of failed request:  99
+  Current serial number in output stream:  100
+
+this error occurs if not using Nvidia drivers... 
+
+explaning here: https://askubuntu.com/questions/833795/x-error-of-failed-request-badvalue-integer-parameter-out-of-range-for-operatio
+meaning: you can't create OpenGL context across network. OPenGL is the lib to connect local GPU, there is no networked support for OPenGL... 
+
+(base) user@tsuipc:~/unetDemo$ sudo lshw -c display 
+[sudo] user 的密码： 
+  *-display               
+       description: VGA compatible controller
+       product: GK104GL [Quadro K4200]
+       vendor: NVIDIA Corporation
+       physical id: 0
+       bus info: pci@0000:03:00.0
+       version: a1
+       width: 64 bits
+       clock: 33MHz
+       capabilities: pm msi pciexpress vga_controller bus_master cap_list rom
+       configuration: driver=nouveau latency=0
+       resources: irq:44 memory:de000000-deffffff memory:c0000000-cfffffff memory:d0000000-d1ffffff ioport:8000(size=128) memory:c0000-dffff
+
+
+(base) ubuntu@ubuntu:/usr/lib$ sudo lshw -c display 
+[sudo] password for ubuntu: 
+  *-display               
+       description: VGA compatible controller
+       product: GP106GL [Quadro P2000]
+       vendor: NVIDIA Corporation
+       physical id: 0
+       bus info: pci@0000:21:00.0
+       version: a1
+       width: 64 bits
+       clock: 33MHz
+       capabilities: pm msi pciexpress vga_controller bus_master cap_list rom
+       configuration: driver=nvidia latency=0
+       resources: irq:110 memory:b2000000-b2ffffff memory:a0000000-afffffff memory:b0000000-b1ffffff ioport:8000(size=128) memory:c0000-dffff
+
+
+
+
+
+after install X-sever:  (openbox,  xorg ;   xserver-common)
+
+a little more: Adding +iglx to xserver-command in /usr/share/lightdm/lightdm.conf.d/50-xserver-command.conf
+service lightdm restart 
+
+Set current directory to /home/user/unetDemo
+Found path: /home/user/unetDemo/demo.x86_64
+Mono path[0] = '/home/user/unetDemo/demo_Data/Managed'
+Mono config path = '/home/user/unetDemo/demo_Data/Mono/etc'
+Preloaded 'ScreenSelector.so'
+Display 0 'HP Z22n G2 22"': 1920x1080 (primary device).
+Logging to /home/user/.config/unity3d/DefaultCompany/netdemo/Player.log
+
+(demo.x86_64:6913): Gtk-WARNING **: 无法在模块路径中找到主题引擎：“hcengine”，
+
+
+at the remote host /.config/unity3d/DefaultCompany/.. 
+
+"Unable to find a supported OPenGL core profile
+Failed to create valid graphics context: 
+OpenGL core profile 3.2+ 
+No support renderers found, exiting.
+
+
+
+nvidia-smi 
+
+ubuntu & tsuipc:  Nvidia Driver 384.130 
+
+   
+lspci | grep  VGA 
+
+ubuntu:  Nvidia GP106GL (Quadro P2000)
+tsuipc:  Nvidia GK104GL(Quadro K4200)
+
+Xserver
+http://manpages.ubuntu.com/manpages/xenial/man1/Xserver.1.html
+
+
+
+https://askubuntu.com/questions/801440/login-loop-badvalue-integer-parameter-out-of-range-for-operation-16-04
+https://askubuntu.com/questions/893922/ubuntu-16-04-gives-x-error-of-failed-request-badvalue-integer-parameter-out-o
+
+
+change additional drivers to X.org instead of  nvidia-384, doesn't work..
+
+
+Text and Hubris: 
+https://www.textandhubris.com/linux-game-troubleshooting-unable-to-find-a-supported-opengl-core-profile.html
+
+
+
+
+#### find glxifo.deb ### 
+https://askubuntu.com/questions/47062/what-is-terminal-command-that-can-show-opengl-version
+
+https://ubuntu.pkgs.org/16.04/ubuntu-universe-amd64/mesa-utils_8.3.0-1_amd64.deb.html
+
+dpkg -i *.deb
+
+
+spark-master: client glx vendor string: NVIDIA Corporation
+
+
+(base) user@tsuipc:~/unetDemo$ strace ./"demo.x86_64" 2>&1  | grep GL 
+open("/home/user/unetDemo/libGL.so.1", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+open("/opt/ros/lunar/lib/libGL.so.1", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+open("/opt/ros/lunar/lib/x86_64-linux-gnu/libGL.so.1", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/mesa/libGL.so.1", O_RDONLY|O_CLOEXEC) = 4
+writev(3, [{"b0\3\0\3\0\1\0", 8}, {"GLX", 3}, {"\0", 1}], 3) = 12
+writev(3, [{"b0\3\0\3\0\1\0", 8}, {"GLX", 3}, {"\0", 1}], 3) = 12
+writev(3, [{"b\0\3\0\3\0\0\0GLX\0", 12}], 1) = 12
+write(2, "libGL error: ", 13libGL error: )           = 13
+write(2, "libGL error: ", 13libGL error: )           = 13
+writev(3, [{"\220\5\2\0\1\0\0\0s\0\1\0b\0\3\0\3\0\5\0", 20}, {"GLX", 3}, {"\0", 1}], 3) = 24
+
+
+
+
+(base) user@tsuipc:~/unetDemo$ glxinfo 
+name of display: localhost:10.0
+libGL error: No matching fbConfigs or visuals found
+libGL error: failed to load driver: swrast
+Error: couldn't find RGB GLX visual or fbconfig
+
+sol:https://blog.csdn.net/wangchuansnnu/article/details/44227811
+
+
+
+
+uninstall nvidia-384 driver...
+https://askubuntu.com/questions/206283/how-can-i-uninstall-a-nvidia-driver-completely
+
+and install nvida-340 driver
+
+after that,  glxinfo will be correct
+
+
+after change to nvidia-30 driver, there is still error:  
+
+ Gtk-WARNING **: 无法在模块路径中找到主题引擎：“hcengine”，
+
+unable to find a suppported OPenGL core profile. Failed to create valid graphics context:  OpenGL core profile 3.2+ 
+
+(base) user@tsuipc:~/unetDemo$ glxinfo | grep "OpenGL version" 
+OpenGL version string: 3.0.0 NVIDIA 384.130
+
+why is still uding Nvidai384-opengl ??
+
+
+
+
+### install gtk2-engines  to solve:    Gtk-WARNING **: 无法在模块路径中找到主题引擎：“hcengine”，
+
+https://ubuntu.pkgs.org/16.04/ubuntu-universe-amd64/gtk2-engines_2.20.2-3ubuntu1_amd64.deb.html
+
+gnome: gtk2-engines:
+http://ftp.gnome.org/pub/GNOME/sources/gtk-engines/2.6/
+
+
+summary of current status: 
+
+from nvidia-340 to remote run spark-master(nvidia-384):
+	X Error of failed request:  BadValue   --> suppose to use a lower driver ()
+
+from nvidia-384 to remote run spark-worker(nvidia-340):
+	Faild to create a supported OpenGL core file (3.2+) , no supported renderers found
+
+
+the problem is when using ssh, the ssh host can only see:
+
+(base) user@tsuipc:~/unetDemo$ glxinfo | grep "OpenGL" 
+OpenGL vendor string: NVIDIA Corporation
+OpenGL renderer string: Quadro P2000/PCIe/SSE2
+OpenGL version string: 3.0.0 NVIDIA 384.130
+OpenGL shading language version string: 1.30 NVIDIA via Cg compiler
+OpenGL context flags: (none)
+OpenGL extensions:
+
+
+but when run on tsuipc directly:
+OpenGL vendor string: NVIDIA Corporation
+OpenGL renderer string: Quadro K4200/PCIe/SSE2
+OpenGL core profile version string: 4.4.0 NVIDIA 340.107
+OpenGL core profile shading language version string: 4.40 NVIDIA via Cg compiler
+OpenGL core profile context flags: (none)
+OpenGL core profile profile mask: core profile
+OpenGL core profile extensions:
+OpenGL version string: 4.4.0 NVIDIA 340.107
+OpenGL shading language version string: 4.40 NVIDIA via Cg compiler
+OpenGL context flags: (none)
+OpenGL profile mask: (none)
+OpenGL extensions:
+OpenGL ES profile version string: OpenGL ES 3.1 NVIDIA 340.107 340.107
+OpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.10
+OpenGL ES profile extensions:
+
+
+https://www.scm.com/doc/Installation/Remote_GUI.html
+
+
+(base) user@tsuipc:~/unetDemo$ find /usr -iname "*libGL.so*" -exec ls -l {} \;
+-rw-r--r-- 1 root root 1075136 May 25  2018 /usr/lib32/nvidia-340/libGL.so.340.107
+lrwxrwxrwx 1 root root 16 Mar  8 19:33 /usr/lib32/nvidia-340/libGL.so.1 -> libGL.so.340.107
+lrwxrwxrwx 1 root root 10 Mar  8 19:33 /usr/lib32/nvidia-340/libGL.so -> libGL.so.1
+-rw-r--r-- 1 root root 1267800 May 25  2018 /usr/lib/nvidia-340/libGL.so.340.107
+lrwxrwxrwx 1 root root 16 Mar  8 19:33 /usr/lib/nvidia-340/libGL.so.1 -> libGL.so.340.107
+lrwxrwxrwx 1 root root 10 Mar  8 19:33 /usr/lib/nvidia-340/libGL.so -> libGL.so.1
+lrwxrwxrwx 1 root root 14 Jun 15  2018 /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 -> libGL.so.1.2.0
+lrwxrwxrwx 1 root root 14 Jun 15  2018 /usr/lib/x86_64-linux-gnu/mesa/libGL.so -> libGL.so.1.2.0
+-rw-r--r-- 1 root root 471680 Jun 15  2018 /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1.2.0
+-rw-r--r-- 1 root root 273304 Jul 26  2015 /usr/lib/x86_64-linux-gnu/primus/libGL.so.1
+lrwxrwxrwx 1 root root 13 Jun 15  2018 /usr/lib/x86_64-linux-gnu/libGL.so -> mesa/libGL.so
+
+
+(base) ubuntu@ubuntu:~$ find /usr -iname "*libGL.so*" -exec ls -l {} \;
+lrwxrwxrwx 1 root root 13 Jun 15  2018 /usr/lib/x86_64-linux-gnu/libGL.so -> mesa/libGL.so
+lrwxrwxrwx 1 root root 14 Jun 15  2018 /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 -> libGL.so.1.2.0
+-rw-r--r-- 1 root root 471680 Jun 15  2018 /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1.2.0
+lrwxrwxrwx 1 root root 14 Jun 15  2018 /usr/lib/x86_64-linux-gnu/mesa/libGL.so -> libGL.so.1.2.0
+-rw-r--r-- 1 root root 1291320 Mar 21  2018 /usr/lib/nvidia-384/libGL.so.384.130
+lrwxrwxrwx 1 root root 16 Mar  7 23:46 /usr/lib/nvidia-384/libGL.so.1 -> libGL.so.384.130
+lrwxrwxrwx 1 root root 10 Mar  7 23:46 /usr/lib/nvidia-384/libGL.so -> libGL.so.1
+-rw-r--r-- 1 root root 665720 Mar 21  2018 /usr/lib/nvidia-384/libGL.so.1.7.0
+-rw-r--r-- 1 root root 1133780 Mar 21  2018 /usr/lib32/nvidia-384/libGL.so.384.130
+lrwxrwxrwx 1 root root 16 Mar  7 23:46 /usr/lib32/nvidia-384/libGL.so.1 -> libGL.so.384.130
+lrwxrwxrwx 1 root root 10 Mar  7 23:46 /usr/lib32/nvidia-384/libGL.so -> libGL.so.1
+-rw-r--r-- 1 root root 523944 Mar 21  2018 /usr/lib32/nvidia-384/libGL.so.1.7.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(base) user@tsuipc:~/unetDemo$ find /usr -iname "*libGLX*.so*" -exec ls -l {} \;
+-rw-r--r-- 1 root root 15531720 May 25  2018 /usr/lib/nvidia-340/xorg/libglx.so.340.107
+lrwxrwxrwx 1 root root 17 Mar  8 19:33 /usr/lib/nvidia-340/xorg/libglx.so -> libglx.so.340.107
+-rw-r--r-- 1 root root 290224 Jan 26  2017 /usr/lib/xorg/modules/extensions/libglx.so
+
+
+(base) ubuntu@ubuntu:~$ find /usr -iname "*libGLX*.so*" -exec ls -l {} \;
+-rw-r--r-- 1 root root 290224 Jan 26  2017 /usr/lib/xorg/modules/extensions/libglx.so
+lrwxrwxrwx 1 root root 17 Mar  7 23:46 /usr/lib/nvidia-384/xorg/libglx.so -> libglx.so.384.130
+-rw-r--r-- 1 root root 14038120 Mar 21  2018 /usr/lib/nvidia-384/xorg/libglx.so.384.130
+lrwxrwxrwx 1 root root 11 Mar  7 23:46 /usr/lib/nvidia-384/libGLX.so -> libGLX.so.0
+-rw-r--r-- 1 root root 65840 Mar 21  2018 /usr/lib/nvidia-384/libGLX.so.0
+lrwxrwxrwx 1 root root 24 Mar  7 23:46 /usr/lib/nvidia-384/libGLX_nvidia.so.0 -> libGLX_nvidia.so.384.130
+-rw-r--r-- 1 root root 1291320 Mar 21  2018 /usr/lib/nvidia-384/libGLX_nvidia.so.384.130
+lrwxrwxrwx 1 root root 24 Mar  7 23:46 /usr/lib/nvidia-384/libGLX_indirect.so.0 -> libGLX_nvidia.so.384.130
+lrwxrwxrwx 1 root root 11 Mar  7 23:46 /usr/lib32/nvidia-384/libGLX.so -> libGLX.so.0
+-rw-r--r-- 1 root root 59392 Mar 21  2018 /usr/lib32/nvidia-384/libGLX.so.0
+lrwxrwxrwx 1 root root 24 Mar  7 23:46 /usr/lib32/nvidia-384/libGLX_nvidia.so.0 -> libGLX_nvidia.so.384.130
+-rw-r--r-- 1 root root 1133780 Mar 21  2018 /usr/lib32/nvidia-384/libGLX_nvidia.so.384.130
+lrwxrwxrwx 1 root root 24 Mar  7 23:46 /usr/lib32/nvidia-384/libGLX_indirect.so.0 -> libGLX_nvidia.so.384.130
+
+
+
+
+#### ssh login session to remote host -DISPLAY
+https://blog.michael.franzl.name/2018/04/21/running-a-graphical-window-program-via-ssh-on-a-remote-machine-with-gpu-hardware-acceleration/
+
+https://unix.stackexchange.com/questions/193827/what-is-display-0
+
+
+
+
+
+
+
+#####  server IP address  /External  221.192.228.156 local: 0 
+
+
+
+##### setup the networking (spark-worker &  spark-master)
+
+
+sudo service network-manager restart
+sudo ifconfig wlan0  up/down
+
+
+
+## check out pc with 2 network-interface, does the IP address map to a special network-interface ? 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+

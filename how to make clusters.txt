@@ -1,0 +1,160 @@
+
+
+http://www.voidcn.com/article/p-dqtoytrd-ob.html
+
+https://www.cnblogs.com/suwy/p/9439304.html
+https://www.cnblogs.com/freeweb/p/5145921.html
+
+
+
+
+ ########### update the two PCs'  network IPV4 configure with the same subdomain :
+
+
+master node: 
+IP Address:  192.168.0.1 
+netmask: 24
+Gateway: null
+DNS serer:  10.3.101.101 
+
+
+worker node:
+
+IP address:  192.168.0.12
+netmask: 24
+Gateway: 192.168.0.1
+DNS: 10.255.18.3
+
+
+
+ubuntu close fire-wall
+
+
+ufw disable / enable 
+
+
+iptables -L 
+
+(policy ACCEPT)
+target  prot  opt souce  destination
+
+IP没有设成静态，直接采用路由器的hdcp功能，动态分配ip，如果要长期使用，请设置成静态ip。
+
+########### Destination host unreachable ######### 
+
+
+# HOW TO MAKE A Ubuntu PC AS A ROUTER ##
+
+
+
+
+################## sudo cd root/ #######
+
+sudo -i
+cd /
+cd /root
+
+#########  how to check  ubuntu PC host name ########## 
+
+/etc/hosts 
+
+spark master: 127.0.1.1  ubuntu 
+spark worker:  127.0.0.2 tsuipc
+
+##########  ssh setup and passwordless login to worker node ### 
+
+ssh-keygen -t rsa
+cd /home/.ssh
+cp id_rsa.pub  authoried_keys
+
+
+### ssh localhost ### 
+spark master display: ssh connect to host localhost port22:  Connection refused 
+
+```
+	sudo apt-get install openssh-server 
+```
+
+Type sudo apt-get install openssh-server
+Enable the ssh service by typing sudo systemctl enable ssh
+Start the ssh service by typing sudo systemctl start ssh
+Test it by login into the system using ssh user@server-name
+
+	
+
+
+
+###  update user in ubuntu ###
+
+ sudo useradd user
+
+ sdo passwd user (123.com)
+
+
+
+
+### hadoop & spark cluster install 
+
+
+
+ntp 时间同步 https://www.cnblogs.com/freeweb/p/5390552.html
+
+
+https://cloud.tencent.com/developer/article/1337652
+
+
+
+can ssh login a remote with root ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+############ consider about  process level parallel ########## 
+
+1) distributed ppss
+
+2) gnu parallel 
+
+3) gnu dsh
+
+
+
+######## multi scene loading ######
+
+https://unity3d.college/2016/09/26/scenemanager/
+
+
+SceneManangemnt-> ScneneMananger.LoadScene()
+
+https://github.com/zeromq/netmq/
+
+
+#### 在线游戏服务器 ### 
+
+unity networkiing PUN https://www.photonengine.com/en/PUN
+
+
+并发在哪里？  scene-map level(sanFransico,  xushui ?)  or case-situation level(merge, cut-in) ? 
+
+how to multiple scene/servers in Unet ?
+https://forum.unity.com/threads/how-to-do-multiple-scenes-servers-in-unet.343988/
+
+multi-process architecture 
+https://github.com/NetEase/pomelo/wiki/Pomelo-framework-overview
+
+
+
+
+
+ 
+
+
