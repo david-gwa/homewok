@@ -7,11 +7,10 @@ apt-get install npm
 
 npm install -g n #n is nodejs manager 
 
-n #will install nodejs
-
 ```
 
-if download failed, find nodejs src from [aliyun](https://npm.taobao.org/mirrors/node/v10.16.2/) and [install nodejs from src](https://www.techaroha.com/install-node-js-source-code/)
+install nodejs (node-v10.16.2.tar.gz) from src 
+
 
 
 ## install webviz 
@@ -19,7 +18,6 @@ if download failed, find nodejs src from [aliyun](https://npm.taobao.org/mirrors
 ```shell
 
 npm run build
-
 
 
 ``` 
@@ -59,35 +57,10 @@ npm ERR! network 'proxy' config is set properly.  See: 'npm help config'
 
  
 
-[solution](https://www.jianshu.com/p/d69b1d8bc2a6)
-
-```shell
-npm config set registry http://registry.cnpmjs.org
-npm info underscore 
-npm install -g cnpm --registry=https://registry.npm.taobao.org
-export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-npm i puppeteer
-
-``` 
-
-> puppeteer@1.19.0 install /home/wubantu/zj/webviz/node_modules/puppeteer
-> node install.js
-
-ERROR: Failed to download Chromium r674921! Set "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD" env variable to skip download.
-{ Error: EACCES: permission denied, mkdir '/home/wubantu/zj/webviz/node_modules/puppeteer/.local-chromium'
-  -- ASYNC --
-
-
-[solution](https://www.jianshu.com/p/d69b1d8bc2a6)
-
-
-
-
 
 * [unsafe-perm](https://stackoverflow.com/questions/48869749/npm-install-puppeteer-showing-permission-denied-errors)
 
 sudo rm -rf node_modules
-
 npm install 
 
 
@@ -105,7 +78,6 @@ follow  [cruise install](https://github.com/cruise-automation/webviz#developing)
 
 
 
- 
 summary :
 
 ```shell
@@ -116,22 +88,65 @@ npm run bootstrap
 sudo npm rebuild node-sass 
 npm run build
 npm test
+npm install  webpack-dev-server
+./node_modules/webpack-dev-server/bin/webpack-dev-server.js --host 10.20.181.132 --port 838
 ```
 
+## a webpack app structure 
+
+[webpack](https://webpack.js.org/guides/getting-started/)
+
+webpack-demo
+|- package.json
+|- webpack.config.js
+|- /dist
+  |- main.js
+  |- index.html
+|- /src
+  |- index.js
+|- /node_modules
 
 
 
 
+## how to run 
+
+`npm run build` to compile the package with webpack, so it can be run with node
+
+the JS bundle could be loaded from a static HTML page, served with any simple web server. (That's exactly what this /packages/webviz-core/public/index.html file is, which is used for https://webviz.io/try. The webpack dev server is configured to serve it at /webpack.config.js) 
+
+[how to run](https://github.com/cruise-automation/webviz/issues/161)
+
+
+## set webpack.config
+
+[config](https://stackoverflow.com/questions/33272967/how-to-make-the-webpack-dev-server-run-on-port-80-and-on-0-0-0-0-to-make-it-publ)
 
 
 
 
+## where to set localhost:port 
+
+node_modules/react-modal/package.json:    "start": "webpack-dev-server --inline --host 127.0.0.1 --content-base examples/",
+
+node_modules/react-treebeard/example/webpack.config.js:        'webpack-dev-server/client?http://0.0.0.0:8080',
 
 
 
+[fix links to webviz tool](https://github.com/cruise-automation/webviz/pull/160/commits/119ac1234efa0d2efe5df1e5c00c4693362c474b)
+
+
+[how to run webviz locally](https://github.com/cruise-automation/webviz/pull/160/commits/625465b358ba8d155aa0f311cbe10a4f35400580)
 
 
 
+## add html to another html
+
+[link1](https://stackoverflow.com/questions/8988855/include-another-html-file-in-a-html-file)
+
+
+
+## how  npm run cowork with webpack-dev-server
 
 
 
@@ -143,5 +158,58 @@ npm test
 ## introduction of Cruise 
 
 [cruise github](https://github.com/cruise-automation)
+
+
+
+## webpack-dev-server
+
+a light-weight Node.js Express server
+
+[webpack](https://segmentfault.com/a/1190000006964335)
+
+[webpack on 0.0.0.0](https://stackoverflow.com/questions/33272967/how-to-make-the-webpack-dev-server-run-on-port-80-and-on-0-0-0-0-to-make-it-publ)
+
+
+
+```python
+
+var path=require("path")
+
+module.exports ={
+	entry: { app:["./app/main.js"] }
+     	output: {path: path.resolve(__dirname, "build")} 
+}
+
+
+npm install webpack-dev-server
+
+npm list | head -n 1 
+
+webpack-dev-server --inline --hot
+
+```
+
+## npm run build product-deploy
+
+[npm run build packages](https://blog.csdn.net/luckyzsion/article/details/80251810)
+
+then  nginx configure run env
+
+[nginx withe nodejs](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-14-04)
+
+
+## webpack config a nodejs app
+
+host by local IP
+
+
+## multi package.json project 
+
+## webpack build and run ?
+
+
+./node_modules/webpack-dev-server/bin/webpack-dev-server.js --host 10.20.181.132 --port 838
+
+
 
 
