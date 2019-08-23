@@ -71,10 +71,36 @@ refer to `apollo ros intro`
 topic is the container of communication in two node peers, and message is the content in the container(topic)
 
 
+### catkin_make 
+
+`catkin_make` should be called from catkin workspace
+
+for msgs_node, which will be used in other ros node, should compile first, by 
+`catkin_make --pkg msgs_node`
+
+
+if the ros node should be executable in later, modify the node CMakeLists.txt by:
+
+```shell
+
+catkin_packag(
+
+LIBRARIES rtk_sensor
+CATKIN_DEPENDS roscpp  std_msgs 
+DEPENDS system_lib 
+)
+
+```
+
+
+
 ### ros bridge
 
 
 ### URDF
+
+
+### add new message type into ros system
 
 
 
