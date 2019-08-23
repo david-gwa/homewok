@@ -96,6 +96,56 @@ DEPENDS system_lib
 
 ### ros bridge
 
+to implement a rosbridge 
+
+[official rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite)
+
+#### rosbridge protocol 
+
+
+sending JSON based commands to ROS. the protocol covers subscrbing and publishing topics, service calls, getting and setting params e.t.c 
+ 
+
+```JSON
+
+{ "op" : "\subscribe\" ,
+  "topic": "\" ,
+  "type":  " \" 
+}
+
+```
+
+#### rosbridge implementation
+
+implement the rosbridge protocol(lib) and provides `WebSocket` transport layer(server)
+
+
+* rosbridge_library, the core to interpret JSON and perform ROS actions, like subscribe, publish and call service ...
+
+```shell
+
+bridge.connect()
+{
+   socket = new WebSocket()
+   socket.OnMessage = ONMessage 
+   socket.ConnectAsync()
+} 
+
+bridge.update()
+{
+   while func in QueuedActions:
+	QueuedActions.Dequeue()();
+}
+
+``` 
+
+
+* rosbridge_server, to do transport layer
+
+
+#### unity3d server to ros node 
+
+implement rosbridge in csharp, and keep publish json string to ros node in fixedupdate() 
 
 ### URDF
 
