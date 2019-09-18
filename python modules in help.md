@@ -6,6 +6,19 @@
 
 [in lg-sim project](https://github.com/lgsvl/PythonAPI/tree/master/tests)
 
+### why unit test ?
+
+unit test is to test the components of a program automatically. a few good reasons of unit tests:
+
+* test driving practice 
+* early sanity checking 
+* for regression test, that the new changes won't break early work 
+
+### unit test vs functional test 
+
+unit test is to test the isolated piece of code, usually white box test written by developer; functional test is to test the function requirements, usually black box test written by testers.
+
+
 ### creating a unittest 
 
 * create testcase class by subclassing unittest TestCase 
@@ -52,6 +65,13 @@ the testcase output can be `OK`, `FAIL`, `ERROR`.
 
 	python3 -m unittest -v tests.test_XXX.TestCaseXXX.test_XXX
 	python3 -m unittest -v tests.test_Simulator.TestSimulator.test_unload_scene
+
+
+
+### automatically unittest 
+
+ 
+
 
 
 ## coverage.py
@@ -134,6 +154,14 @@ if __name__ == "__main__":
 
 ## pygame
 
+
+
+
+## refer 
+
+[python automatic test series](https://www.cnblogs.com/beer/p/5075619.html)
+
+[auger: automated Unittest generation for Python](https://github.com/laffra/auger)
 
 
 
