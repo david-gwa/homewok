@@ -118,7 +118,6 @@ components works as a func, and props is the func's paramters, the func will ret
   initial render -> constructor() -> componentWillAmunt() -> render() -> componentDidMount() --> componentWillUnmount() 
 
 
-
 ### event handler and bind()
 
 

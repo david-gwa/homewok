@@ -68,9 +68,31 @@ the testcase output can be `OK`, `FAIL`, `ERROR`.
 
 
 
-### automatically unittest 
+### automatically generate unittest 
 
- 
+[auger](https://github.com/laffra/auger) to automatically generate unittests for Python, works only for Python==2.7
+
+
+### python mock
+
+
+* MagicMock
+	
+	MagicMock is a subclass of Mock with all the magic methods pre-created and ready to use.
+	
+* Mock
+
+* Patch 
+
+	[official doc](https://docs.python.org/3/library/unittest.mock.html#the-patchers)
+
+
+
+* mock python objects variables with `returnvalue`  
+
+* [mock class method](https://stackoverflow.com/questions/57044593/python-unittest-mock-class-and-class-method)
+
+* test with while loop
 
 
 
@@ -156,6 +178,54 @@ if __name__ == "__main__":
 
 
 
+## setup tools
+
+
+### create a package/module 
+
+* setup.py 
+
+used to configure package parameter
+
+```python 
+
+setup(
+	name="test",
+	version="0.1",
+	packages=find_packages(),
+	description="lg-sim API python"
+	author="gwa"
+	url="http"
+)
+
+```
+
+* check setup.py parameters:  `python setup.py check`
+
+* build package.egg: `python setup.py  bdist_egg`
+
+
+	
+### setuptools
+
+* what setuptools for ?
+
+to easily create and build Python package/modules with dependents  
+
+
+
+## event handling 
+
+the original requires is to read Matlab *.fig into Python, and track the xyz point by mouse click or keyboard press. to render Matlab fig in python, there is a [sample code on StackOverflow](https://stackoverflow.com/questions/8172931/data-from-a-matlab-fig-file-using-python).
+
+    
+matplotlib has the [event handling APIs](https://matplotlib.org/3.1.1/users/event_handling.html), 
+
+```python
+cid = fig.canvas.mpl_connect('key_press_event', onPressKey)
+```
+
+
 
 ## refer 
 
@@ -163,6 +233,9 @@ if __name__ == "__main__":
 
 [auger: automated Unittest generation for Python](https://github.com/laffra/auger)
 
+[python setup](https://www.jianshu.com/p/9a54e9f3e059)
+
+[data from matlab fig using Python](https://stackoverflow.com/questions/8172931/data-from-a-matlab-fig-file-using-python)
 
 
 
