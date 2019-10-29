@@ -34,12 +34,50 @@ beyond automotive, industry IoT maybe an even general domain to quickly apply AB
 
 this is the new vision, rather than as a pure vehicle industry, 
 
-
+what we thought is previous is nothing at end.  
 
 ### a product engineer
 
-ADS products has returned to L2+ , which 
+there comes a time, the OEM engineers asked, why you guys build tools, rather than buy from suppliers. that's the right thing for OEMs to integrate components, rather than building tools. 
 
+the cost of building tools by OEM itself is really too much after a while we realized. But at first, OEMs thought it was too costy to buy commecial tools, which gives survival space of a small team to grow inside OEM teams.
+
+actually at the early time, small team dreams big, especially in these days, many open source projects can used freely. the small team almost support every aspect related to software tools, and as well to add features to simulation platform, which is also based on an open source project [lg-sim](https://github.com/lgsvl/simulator)
+
+the team has three developers, but maintain bunch of ros tools, four in-house web-based toools, gitlab system, matlab issues, and the main project is still lg-sim and data infrastructure system. in a good way, the tool team, as I called it, looks taking a great role. even in other mobility service companies, e.g. DiDi, they does have a tool team, `software manager` looks like a good role in the team. but the reality is, to customize any tool, will cost a huge energy for a small team, as we are not involved in these open source projects. more, the manager team doesn't consider an independent tool team.
+
+
+
+and even like this, we are moving forward slowly.
+
+
+
+### infrasturcture for ABC
+
+
+for ADS startups, they emphasize their infrasturcture features with : 
+
+* cloud platform 
+* remote monitor/control system (for vehicle team management) 
+* OTA 
+* data infrastructure(storage, management, analysis)
+ 
+
+and in single vehicle features with powerful computing ability, from GTC 2018 speak, most startup use the powerful Xdriver GPU；
+
+* WeRide 
+* Momenta
+* Tusimple
+* AutoX 
+* Roadstar.AI (dead)
+* plusAI
+* ponyAI
+
+
+all these looks very Internet, but too far from massive vehicle product. the other mind is these teches are actually common for average engineers, but the chanllenge is to build a team, to realy make it work.
+
+
+the life leap happens to a few lucky guys. most guys are common and grow in a linear speed. 
 
 
 
