@@ -1,0 +1,23 @@
+### test background 
+
+
+the typical(fail) scenario/event is what the team focused on. rosbag is one way to track the fail events,  `dlt` log the corresponding vehicle pose data, which is actually where the team used to improve the ADS algorithms.
+
+
+currently, the fail scenario is manually done by the vehicle testers, who record the fail event(such as sudden brake, can't lane change). if we can learning these `failure features` from the logging data, which will help to define the standard evaluation metrics, then used in vehicle test and simulation
+
+### data cycle 
+
+
+the closed-loop data cycle, should be the right way to couple test and development. 
+
+#### data storage 
+
+* dlt log data
+* event/failure scenario 
+
+#### big data tool
+
+* [abnormal detection](https://github.com/twitter/AnomalyDetection), which helps to analysis the log data and find anormal features, which is highly possible an failure event
+
+the benefits of this data toool chain, is to automatic connect our test data and development.
