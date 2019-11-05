@@ -24,6 +24,8 @@ sudo umount -t cifs /home/david/repo/rosbag_manager/data
 
 ```
 
+there is no `smb:` before `//share_ip_address`.
+
 
 ## Tomcat server configure
 
@@ -33,15 +35,21 @@ bag_database is hosted by Tomcat, the default port is 8080. For our services, wh
 	netstat -an | grep 8088 
 ```
 
+as the bag_db Tomcat server is hosted in Docker, find out the bag_db_container_ID, and `docker exec -it bag_db_container_id /bin/bash`, then 
 
-so configure `/usr/loca/tomcat/conf/server.xml`:
+```script
 
-```xml
-	
+@ /usr/loca/tomcat/conf/server.xml 
+
+
 <Service name="Catalina">
    <Connector port="your_special_port"
    ...
 </Service>
+
+/usr/local/tomcat/bin/shutdown.sh 
+/usr/local/tomcat/bin/start.sh 
+
 
 ```
 
@@ -164,10 +172,9 @@ all these functions will be a neccessary for a full-stack ADS team in future to 
 
 [MooreMike: ros analysis in Jupter](http://moore-mike.com/ros-analysis-part-2.html)
 
-[mount smb share drive to ubuntu](https://askubuntu.com/questions/29535/how-do-i-access-a-mounted-windows-share-from-the-command-line)
+[mount smb share drive to ubuntu](https://www.configserverfirewall.com/ubuntu-linux/mount-samba-share-ubuntu-cifs/)
 
 [autovia.ai](https://autovia.ai/)
-
 
 
 

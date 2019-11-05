@@ -179,6 +179,13 @@ print("main thread on going...")
 
 
 
+## callback vs coroutines 
+
+* callback
+	nonblock IO, few threads 
+
+* coroutines 
+	
 
 
 
