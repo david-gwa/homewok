@@ -103,7 +103,7 @@ when `VOLUME` in DOCKERFILE, it actually has nothing to do with current host pat
 [warning: VOLUME breaks things](https://stackoverflow.com/questions/41935435/understanding-volume-instruction-in-dockerfile)
 
 
-### put lg-sim(2019.09) into Docker 
+### Docker to support Vulkan
 
 lg-sim 2019.09 version has used HDRP rendering, which depends on `vulkan` GPU features, which is not supported by standard `Docker-nvidia`. but which is a good way to implement cloud deployment. Once built [the Dockerfile](https://github.com/lgsvl/simulator/issues/222) to run lg-sim 2019.04, which use the standard rendering pipeline, supported by `Docker-nvidia` well.
 
@@ -118,6 +118,20 @@ No supported renderers found, exiting
 
 there is a pre-release [docker-nvidia-vulkan](https://github.com/edowson/docker-nvidia-vulkan), which has more details control of vulkan support, and which can build all right but failed when run, due to the built image base [cudagl requires GPU brand TELSA](https://gitlab.com/nvidia/container-images/cudagl). Nvidia has provided a few images, including openGL, CUDA, [vulkan](https://gitlab.com/nvidia/container-images/vulkan)
 
+
+a few lines may help:
+
+```
+/usr/lib/nvidia-384/libGLX_nvidia.s.0 
+
+/usr/share/vulkan/icd.d
+
+/proc/driver/nvidia/version 
+
+
+```
+
+
 another big try is make the server running in headless mode.
 
 
@@ -125,6 +139,10 @@ another big try is make the server running in headless mode.
 
 
 [Understand and manage Docker container volumes](https://www.ionos.com/community/server-cloud-infrastructure/docker/understanding-and-managing-docker-container-volumes/)
+
+[what is vulkan SDK](https://www.lunarg.com/vulkan-sdk/)
+
+[Graham blog](https://www.wihlidal.com/blog/graphics/2019-05-28-vk-rust-ray-tracing-hlsl/)
 
 
 
