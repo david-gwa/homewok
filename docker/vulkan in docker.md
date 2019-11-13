@@ -22,6 +22,12 @@ a few lines may help:
 
 ```
 
+### lgsvl in docker
+
+the above vulkan-docker image is the base to host lgsvl (2019.09). additionaly, adding `vulkan_pso_cache.bin` to the docker. the benefit of host lgsvl server in docker, is to access the webUI from host or remote. so the network should be configured to run as `--net=host`. if configure as a swarm overlay network, it should support swarm cluster.
+
+
+
 
 ### VOLUME in dockerfile
 
