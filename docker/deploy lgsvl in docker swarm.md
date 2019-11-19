@@ -72,7 +72,14 @@ docker-compose v2 does support `runtime=nvidia`, by appending the following to `
     }
 ```
 
-to run vkcube in compose by: `docker-compose up`: 
+to run vkcube in compose by:
+
+```
+xhost +si:localuser:root
+docker-compose up
+```
+
+the docker-compose.yml is :
 
 ```
 version: '2.3'
