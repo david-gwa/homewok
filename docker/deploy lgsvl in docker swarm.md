@@ -153,6 +153,23 @@ curl http://192.168.0.10:8000
 ```
 
 
+### docker service runtime 
+
+`docker run` can support runtime env through `-e` in CLI or `env-file`, but actually `docker service` doesn't have runtime env support. `docker compose v3` give the possiblity to configure the runtime env and deploy the service to clusters, but so far v3 compose doesn't support `runtime=nvidia`, so not helpful.
+
+I tried to run vkcube, lgsvl with docker service:
+
+```
+docker service create --name vkcc --env NVIDIA_VISIBLE_DEVICES=0 --env DISPLAY=unix:$DISPLAY --mount src="/.X11-unix",dst="/tmp/.X11-unix"  vkcube
+docker service create --name lgsvl  -p 8080:8080 --env NVIDIA_VISIBLE_DEVICES=0 --env DISPLAY=unix$DISPLAY --mount src="X11-unix",dst="/tmp/.X11-unix"  lgsvl
+
+```
+
+for `vkcube`, the service converged, but no GUI display; for `lgsvl`, the service failed.
+
+
+
+
 ## Docker deploy
 
 [docker deploy](https://docs.docker.com/v17.12/edge/engine/reference/commandline/deploy/) is used to deploy a complete application stack to the swarm, which accepts the stack application in [compose file](https://docs.docker.com/compose/compose-file/), docker depoy is in experimental, which can be trigger in `/etc/docker/daemon.json`, [check to enable experimental features](https://docs.docker.com/v17.12/engine/reference/commandline/dockerd/#daemon-configuration-file)
@@ -208,6 +225,9 @@ docker ps #on the special node where the task is running, to see details about t
 
 ```
 
+
+
+
 ## summary
 
 at this moment, it's not possible to use v3 compose.yml to support `runtime=nvidia`, so using v3 compose.yml to depoly a gpu-based service in swarm is blocked. the nature swarm way maybe the right solution. 
@@ -243,5 +263,6 @@ at this moment, it's not possible to use v3 compose.yml to support `runtime=nvid
 
 * [swarmkit: generic_resources](https://github.com/docker/swarmkit/blob/master/design/generic_resources.md)
 
+* [Docker ARG, ENV, .env -- a complete guide](https://vsupalov.com/docker-arg-env-variable-guide/)
 
 
