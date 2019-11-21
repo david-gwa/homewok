@@ -125,11 +125,61 @@ e001nd557ka6         \_ vkcc.1          nvidia/cudagl:9.0-base-ubuntu16.04   ubu
 
 check daemon log with ` sudo journalctl -fu docker.service`, which gives:
 
-
 ```
 Nov 21 13:07:12 ubuntu dockerd[1372]: time="2019-11-21T13:07:12.089005034+08:00" level=error msg="fatal task error" error="starting container failed: OCI runtime create failed: unable to retrieve OCI runtime error (open /run/containerd/io.containerd.runtime.v1.linux/moby/9eee7ac30a376ee8f59704f7687455bfb163e5ea3dd6d09d24fbd69ca2dfaa4e/log.json: no such file or directory): nvidia-container-runtime did not terminate sucessfully: unknown" module=node/agent/taskmanager node.id=emzw1f9293rwdk97ki7gfqq1q service.id=qdma7vr1g519lz9hx2y1fen9o task.id=ex1l4wy61kvughns5uzo6qgxy
 
 ```
+
+
+#### third try 
+
+
+following [issue #141](https://github.com/NVIDIA/nvidia-docker/issues/141#issuecomment-356458450)
+
+
+```
+nvidia-smi -a | grep UUID | awk '{print "--node-generic-resource gpu="substr($4,0,12)}' | paste -d' ' -s
+sudo systemctl edit docker
+
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// --default-runtime=nvidia <resource output from the above>
+
+```
+
+and run: 
+
+		docker service create --name vkcc --generic-resource "gpu=1" --env DISPLAY --constraint 'node.role==manager' nvidia/cudagl:9.0-base-ubuntu16.04
+
+
+it works !!! with output `verify: Service converged `. However, when test image with `vucube` or `lgsvl` it has errors:
+
+```
+error msg="pulling image failed" error="pull access denied for vkcube, repository does not exist or may require 'docker login'"
+
+Nov 21 19:33:20 ubuntu dockerd[52334]: time="2019-11-21T19:33:20.467968047+08:00" level=error msg="fatal task error" error="task: non-zero exit (1)" module=node/agent/taskmanager node.id=emzw1f9293rwdk97ki7gfqq1q service.id=spahe4h24fecq11ja3sp8t2cn task.id=uo7nk4a3ud201bo9ymmlpxzr3
+
+```
+
+the regsitry error can be fixed, by push the image to local registry. and to debug the `non-zero exit (1)` :
+
+
+```
+docker service  ls    #get the dead service-ID
+
+docker [service] inspect  r14a68p6v1gu  # check 
+
+docker ps -a  # find the dead container-ID 
+
+docker logs  ff9a1b5ca0de   # check the log of the failure container
+
+``` 
+
+it gives: `Cannot find a compatible Vulkan installable client driver (ICD)` 
+
+I had an issue at [gitlab/nvidia-images](https://gitlab.com/nvidia/container-images/vulkan/issues/2)
+
+
 
 #### generic-resource support discussion 
 
