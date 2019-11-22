@@ -181,6 +181,22 @@ I had an issue at [gitlab/nvidia-images](https://gitlab.com/nvidia/container-ima
 
 
 
+#### forth try
+
+
+ 	docker service create --name glx --generic-resource "gpu=1" --constraint 'node.role==manager'  --env DISPLAY --mount src="X11-unix",dst="/tmp/.X11-unix" --mount src="tmp",dst="/root/.Xauthority"  --network host  192.168.0.10:5000/glxgears 
+
+
+BINGO !!!!! it does serve `glxgears` in service mode. However, there are a few issues:
+
+*  constraint to manager node
+
+*  require host network 
+
+the `X11-unix` and `Xauthority` are from [X11 configuration](https://www.csdn.net/article/2015-07-30/2825340), which need more study. also  `network` parameter need to expand to ingress overlay
+
+ 
+
 #### generic-resource support discussion 
 
 [moby issue 33439: add support for swarmkit generic resources](https://github.com/moby/moby/issues/33439)
