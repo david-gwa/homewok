@@ -101,6 +101,23 @@ the ability to do resimulation of road test is a big step, the input is directly
 
 another big thing is about their high-level scenario description language(HLSDL), which I think is more abstract than OpenScenario. the HLSDL engine use hyper-parameters, SOTIF embedded scenario idea, and optimized scenario generator, which should be massive, random as well as KPI significantly, it should be a good scenario engine if it has these features. 
 
+## Bosch VMS
+
+vehicle management system(VMS) is cloud nature framework from Bosch, which is used to meet the similar requirements as Nvidia's solution, to bring the closed-loop(CI/CD) from road test data collection, data anlaysis to fleet management. they have a few applications based on VMS:
+
+*  fleet batteries management(FBM)
+
+for single vehicle's diaglostic, prediction; and for the EV market, FBM can be used as certification for second-hand EV dealers
+
+* road coefficient system(RCS)
+
+Bosch has both in-vehicle data collection box and cloud server, RCS will be taken as additional sensor for ADS in prodcut
+
+* VMS in itself
+
+Bosch would like to think VMS as the PLM for ADS, from design, test, to deployment. and it shoul be easy to integrate many dev tools, e.g. labeling, simulation e.t.c
+
+
 
 ## what about safety 
 
