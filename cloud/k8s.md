@@ -1,104 +1,9 @@
 
-## default dns/server/api namespace 
 
-* [pod DNS vs service DNS](https://kubernetes.io/zh/docs/concepts/services-networking/dns-pod-service)
-
-
-* [customizing DNS service: coredns](https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#coredns)
-
-
-check the [github issue1292: coredns CrashLoopBackOff due to dnsmasq](https://github.com/kubernetes/kubeadm/issues/1292)
-
-a few things may confused:
-
-* dnsmasq vs NetworkManager
-
-* /etc/resolv.conf vs  /etc/NetworkManager/*.conf 
-
-
-[coredns pods have CrashLoopBackOff or Error state](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/troubleshooting-kubeadm/#coredns-pods-have-crashloopbackoff-or-error-state)
-
-
-* use a new docker
-
-* disable SELinux 
-
-* modify `coredns` deployment to set `allowPrivilegeEscalation: true`
-
-
-
-#### coreDNS
-
-[coreDNS git](https://coredns.io)
-
-[coreDNS](https://kubernetes.io/docs/tasks/administer-cluster/coredns/) is DNS server that can serve as the Kubernetes cluster DNS
-
-* where is CoreDNS configuration (“Corefile”) ? 
-
-* deploy k8s with kubeadm with CoreDNS 
-
+## kubectrl commands 
 
 ```sh
-/usr/libexec/
-/etc/kubernetes/
-```
-
-
-
-* [cni readme](https://github.com/containernetworking/cni/blob/master/SPEC.md)
-
-* [configure network plugins](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/):
-
-
-### Flannel 
-
-[multi-host networking overlay with Flannel](https://docker-k8s-lab.readthedocs.io/en/latest/docker/docker-flannel.html)
-
-the simplest backend is UDP and uses a TUN device to encapsulate every IP fragement in a UDP packet, forming an overlay network.
-
-[flannel github proj](https://github.com/coreos/flannel)
-
-
-[flannel for k8s from  silenceper](https://silenceper.com/blog/201809/flannel-in-k8s/)
-
-
-[k8s etcd arch and implementation](http://jolestar.com/etcd-architecture/)
-
-
-the common error here is `worker node in NotReady status`, which is due to the worker node missed CNI plugin configure.
-
-
-
-
-
-
-## k8s arch 
-
-learning from [k8s arch](https://www.bookstack.cn/read/follow-me-install-kubernetes-cluster-1.8.x/00.Kubernetes%E4%BB%8B%E7%BB%8D.md)
-
-
-![image](https://static.bookstack.cn/projects/follow-me-install-kubernetes-cluster-1.8.x/images/components.png)
-
-
-## deploy pod in k8s 
-
-#### [properties can set for a container]()
-
-
-
-
-## deploy service in k8s 
-
-* how to create a service pod ? 
-
-
-#### kubectrl commands 
-
-```sh
-
-kubectl get [pods|nodes|namespaces|services|pv]
-
-kubectl get pods --namespace your_namespace
+kubectl get [pods|nodes|namespaces|services|pv] --ns your_namespace
 
 kubectl describe [pods|nodes|namespaces]
 
@@ -109,8 +14,6 @@ kubectl apply -f [.yaml|.json]   #creates and updates resources in the cluster
 kubectl create deployment service_name --imae=service_image   #start a single instance of service
 
 kubectl rollout history deployment/your_service  #check history of deployment 
-
-kubectl rollout undo deployment/your_service --to-revision=x #rollback to the previous deployment 
 
 kubectl expose rc your_sevice --port=80 --target-port=8000
 
@@ -126,24 +29,14 @@ kubectl logs your_pod # dump pod logs
 
 kubectl run -i --tty busybox --image=busybox  -- sh  # run pod as interactive shell 
 
-kubectl attach busybox -c busybox -i -t # resume into interactive shell when the pod is running
-
-kubectl run nginx --image=nginx --restart=Never -n yournamespace #run pod nginx in a specific namespace 
-
 kubectl exec -ti your_pod -- ls | nslookup kubernetes.default    #run command in existing pod (1 container case) 
-
-kubectl exec your_pod -c your_container -- ls /  # run command in existing pod (multi-container case)
-
-kubectl cluster-info # display address of the master and services 
-
-kubectl cluster-info dump --output-directory=/path/to/cluster/state # dump current cluster state to stdout 
-
-kubectl api-resources --namespaced=true -o name 
 
 ```
 
+`kubectl` is pretty much like `docker` command and more. 
 
-#### manual deploy via kubectl
+
+## manual deploy via kubectl
 
 ```sh
 kubectl create ns test-busybox
@@ -155,7 +48,7 @@ kubectl run busybox --namespace=test-busybox \
 kubectl get pods -n test-busybox  #should display `Running`, but `Pending` 
 ```
 
-* pending pod ?
+* error1: pending pod
 
 ```sh
 kubectl describe pods/busybox -n test-busybox
@@ -168,71 +61,53 @@ gives:
 
 ```
 
+a few things to check:
 
-which is [due to the master node is not allowd to run pod](https://linjinbao66.github.io/2020/2020-05-03-k8s%E7%AC%94%E8%AE%B0/)
+* `swapoff -a` to close firewall on working node 
 
-
-further, found `ubuntu node status NotReady`. --> which is due to missing `swapoff -a`
-
-
-[how to handle unschedulable nodes](https://github.com/Azure/AKS/issues/856): `kubectl uncordon`
+* `kubectl uncordon` to make node schedulable [kubectl uncordon](https://github.com/Azure/AKS/issues/856)
 
 
-* error 2
+
+* error 2: failed create pod sandbox
 
 ```sh
   Warning  FailedCreatePodSandBox  25s (x4 over 2m2s)  kubelet, ubuntu    Failed to create pod sandbox: rpc error: code = Unknown desc = failed pulling image "k8s.gcr.io/pause:3.2": Error response from daemon: Get https://k8s.gcr.io/v2/: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
 ```
 
+solution is to copy `k8s.grc.io/pause:3.2` image to `ubuntu node`, and restart kubelet on working node.
 
-which need to copy all `k8s.grc.io` images to `ubuntu node` as well. 
 
-* error 3
+* error 3: no network plugin CNI
 
 ```sh
 networkPlugin cni failed to set up pod "busybox_test-busybox" network: open /run/flannel/subnet.env: no such file or directory
 ```
 
+[a temp solution](https://github.com/kubernetes/kubernetes/issues/36575) is to cp `/run/flannel/subnet.env` from master node to worker node, then restart kubelet at the worker node. as further study, the `cp subnet.env` to worker node is not the right solution, as every time the worker node shutdown, this `subnet.env` file will delete, and won't restart when reboot the worker node the next day.
 
-[sol](https://github.com/kubernetes/kubernetes/issues/36575), cp `/run/flannel/subnet.env` from master node to worker node, then restart the pod 
+so the final solution here is to pull `quay.io/coreos/flannel` image to worker node, as well as `k8s.gcr.io/kube-proxy`. in later k8s version, `kube-proxy` is like a proxy, what's really inside is the flannel daemon. so we need both `kube-proxy` and `flannel` at worker node, to guarantee the network working.
 
-
-finally, check the describe again:
-
-```sh
-Events:
-  Type    Reason     Age        From               Message
-  ----    ------     ----       ----               -------
-  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned test-busybox/busybox to ubuntu
-  Normal  Pulling    3m19s      kubelet, ubuntu    Pulling image "busybox"
-  Normal  Pulled     31s        kubelet, ubuntu    Successfully pulled image "busybox"
-  Normal  Created    30s        kubelet, ubuntu    Created container busybox
-  Normal  Started    30s        kubelet, ubuntu    Started container busybox
-
-```
-
-* test continue 
+we can see the `busybox` service is running well: 
 
 ```sh
-gwm@meng:~$ kubectl expose pod busybox --type=NodePort \
->                              --namespace=test-busybox
-service/busybox exposed
-gwm@meng:~$ kubectl get pods --output=wide -n test-busybox
+kubectl expose pod busybox --type=NodePort   --namespace=test-busybox
+kubectl get pods --output=wide -n test-busybox
 NAME      READY   STATUS    RESTARTS   AGE     IP         NODE     NOMINATED NODE   READINESS GATES
 busybox   1/1     Running   0          7m57s   10.4.0.3   ubuntu   <none>           <none>
-gwm@meng:~$ kubectl get service busybox -n test-busybox
+kubectl get service busybox -n test-busybox
 NAME      TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
 busybox   NodePort   10.107.117.219   <none>        8280:32431/TCP   33s
 ```
 
-* check LISTEN port: `netstat -tulpn | grep LISTEN`
-
-* the basic idea here is to find out the physical machine, on which busybox pod is running, and use the physical machine's IP to access the pod. Question, is hostmachine's IP can is passing through the pod IP, who is running on this host machine ? 
-
-* another possible solution, is add cluster/pod DNS to the nameserver at host machine? but is this the common way ? 
+but the problem here is, we can't access this service from host machine. 
 
 
-##### [exposing an external IP to access an app in cluster](https://kubernetes.io/docs/tutorials/stateless-application/expose-external-ip-address/)
+#### [exposing an external IP to access an app in cluster](https://kubernetes.io/docs/tutorials/stateless-application/expose-external-ip-address/)
+
+to expose service externally, define the service as either`LoadBalancer` or `NodePort` type. but `LoaderBalancer` [requires external third-party: 23562](https://github.com/kubernetes/kubernetes/issues/23562) implement of load balancer, e.g. AWS. 
+[why loadBalancer service doesn't work](https://stackoverflow.com/questions/44110876/kubernetes-service-external-ip-pending): if you are using a custom Kubernetes Cluster (using minikube, kubeadm or the like). In this case, there is no LoadBalancer integrated (unlike AWS or Google Cloud). With this default setup, you can only use NodePort or an Ingress Controller.
+
 
 ```sh
 kubectl apply -f /home/gwm/k8s/busybox.yaml
@@ -240,80 +115,330 @@ kubectl get deployments hello-world  	#display info of Deployment
 kubectl describe deployments hello-world
 kubectl get replicasets		#display info of ReplicaSet
 kubectl describe replicasets
-kubectl expose deployment hello-world --type=LoadBalancer --name=my-service  # create a service object that exposes the deployment 
+kubectl expose deployment hello-world --type=NodePort --name=my-service  # create a service object that exposes the deployment 
 kubectl get services my-service 
 kubectl describe services my-service
+#cleanup when test done
+kubectl delete services my-service
+kubectl delete deployment hello-world
 ```
 
-the `external IP address` is shown as <pending> all the time, which is a bug of using `LoadBalancer type service`.
-
-check [git issue 23562](https://github.com/kubernetes/kubernetes/issues/23562), there are three ways to do:
-
-	1) use NodePort instead of LoadBalancer, which will expose it to a port on the cluster IP 
-
-	2) use externalIP option with LoadBalancer service, where the IP can be the host machine's IP ?
-
-for solution 2), add `--external-ip=10.20.180.12`, the externalIP is not pending, but still `curl http://10.20.180.12:8280` doesn't work.
-
-
-[why loadBalancer service doesn't work](https://stackoverflow.com/questions/44110876/kubernetes-service-external-ip-pending): if you are using a custom Kubernetes Cluster (using minikube, kubeadm or the like). In this case, there is no LoadBalancer integrated (unlike AWS or Google Cloud). With this default setup, you can only use NodePort or an Ingress Controller.
-
-for solution 1), expose the service with `kubectl expose deployment hello-world --type=NodePort --external-ip=10.20.180.12  --name=my-service`, but still can't access the service:
+looks the `NodePort` service doesn't work as expected: 
 
 ```sh
 curl http://10.20.180.12:8280 
 curl: (7) Failed to connect to 10.20.180.12 port 8280: Connection refused
 ```
 
+if pods can't be cleaned by `kubectl delete pods xx`, try `kubectl delete pod <PODNAME> --grace-period=0 --force --namespace <NAMESPACE>`. 
 
-* cleanup
+
+**how to access k8s service outside the cluster**
+
+
+## kubectl config 
+
+
+#### [reconfigure a node's kubelet in a live cluster](https://kubernetes.io/docs/tasks/administer-cluster/reconfigure-kubelet/#automatic-rbac-rules-for-node-authorizer)
+
+Basic workflow overview
+
+The basic workflow for configuring a kubelet in a live cluster is as follows:
+
+    Write a YAML or JSON configuration file containing the kubelet’s configuration.
+    Wrap this file in a ConfigMap and save it to the Kubernetes control plane.
+    Update the kubelet’s corresponding Node object to use this ConfigMap.
+
+
+* dump configure file of each node 
 
 ```sh
-kubectl delete services my-service
-kubectl delete deployment hello-world
+  NODE_NAME="the-name-of-the-node-you-are-reconfiguring"; curl -sSL "http://localhost:8001/api/v1/nodes/${NODE_NAME}/proxy/configz" | jq '.kubeletconfig|.kind="KubeletConfiguration"|.apiVersion="kubelet.config.k8s.io/v1beta1"' > kubelet_configz_${NODE_NAME}
 ```
 
-**in a word**, this doesn't work well for me. back to Q: how to access k8s service outside the cluster? 
+our cluster have `ubuntu` and `meng`(as leader) two nodes. with these two config files, we found two existing issues: 
+
+
+1) network config on two nodes doesn' match each other
+
+```sh
+<   "clusterDomain": "xyz.abc",
+---
+>   "clusterDomain": "cluster.local",
+<     "10.3.0.10"
+---
+>     "10.96.0.10"
+
+```
+
+after generrating the NODE config files above, we can edit these files, and then push the edited config file to the control plane:
+
+```sh
+NODE_NAME=meng; kubectl -n kube-system create configmap meng-node-config --from-file=kubelet=kubelet_configz_${NODE_NAME} --append-hash -o yaml
+NODE_NAME=ubuntu; kubectl -n kube-system create configmap ubuntu-node-config --from-file=kubelet=kubelet_configz_${NODE_NAME} --append-hash -o yaml
+```
+
+after this setting up, we can check the new generated configmaps:
+
+```sh
+kubectl get configmaps -n kube-system
+kubectl edit configmap meng-node-config-t442m526c5 -n kube-system
+```
+
+tips: configMaps is also an Object in k8s, just like namespace, pods, svc. but which is only in /tmp, need manually dump. 
+
+
+namely:
+
+```sh
+meng-node-config-t442m526c5          1      35m
+ubuntu-node-config-ghkg27446c        1      18s
+```
+
+
+* set node to use new configMap, by `kubectl edit node ${NODE_NAME}`, and add the following YAML under `spec`:
+
+```yml
+configSource:
+    configMap:
+        name: CONFIG_MAP_NAME # replace CONFIG_MAP_NAME with the name of the ConfigMap
+        namespace: kube-system
+        kubeletConfigKey: kubelet
+```
+
+* observe the node begin with the new configuration
+
+```sh
+kubectl get node ${NODE_NAME} -o yaml
+```
+
+
+2) kubectl command doesn't work at worker node
+
+basically, worker node always report `error: Missing or incomplete configuration info.  Please point to an existing, complete config file` when running `kubectl` command. 
+
+which needs to copy `/etc/kubernetes/admin.conf` from master to worker, then append `cat "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile` at worker node.
 
 
 
-* pods can't be cleaned ?
 
+[organizing cluster accesss using kubecnfig files](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
+ 
+
+#### docker0 iptables transfer 
+
+when starting docker engine, `docker0` VNC is created, and this vnc add its routing rules to the host's iptables. From docker 1.13.1, the routing rules of `docker0` vnc is only transfer to localhost of the host machine, namely `docker0` to any other non-localhost is forbidden, which leads to the service can only be access on the host machine, where this pod/container is running. in multi-nodes k8s, we need enable iptable FORWARD. 
+
+append the following line to `ExecStart` line in file `/lib/systemd/system/docker.service`: 
+
+```xml
+ExecStartPost=/sbin/iptables -I FORWARD -s 0.0.0.0/0 -j ACCEPT
+```
+
+then restart docker engine: 
+
+```sh
+systemctl daemon-reload
+systemctl restart docker.service
+
+after enable docker0 iptable rules, the following test service can be accessed on both nodes. 
+
+
+
+
+## virtual network flannel
+
+
+#### check running flanneld 
+
+
+* `/etc/cni/net.d/10-flannel.conflist` on host machine is the same as `/etc/kube-flannel/cni-conf.json` in flannel container on master node.
+
+* `/run/flannel/subnet.env` exist in both flannel container (on master node) and in master host machine. it looks like network configure(subnet.env) is copied from container to host machine. so if there is no `flannel container` running on some nodes, these nodes won't have the right network configure. 
+
+at master node, `HostPath` points to: /run/flannel, /etc/cni/net.d, kube-flannel-cfg (ConfigMap); while at working node(due to missing /gcr.io/flannel image), `/run/flannel/subnet.env` is missed. previously, I thought to cp this file from master node to woker node is the solution, then this file is missed every time to restart worker node. 
+
+once copied both `kube-proxy` and `flannel` images to worker node, and restart `kubelet` at worker node, the cluster should give `Running status` of all these components. including 2 copies of `flannel`, one running on master node, and the other running on working node. 
+
+as we are using `kubectl` to start the cluster, the actual flanneld is `/opt/bin/flanneld` from the running flannel container, and it maps NIC to the host machine. 
+
+another thing is, `flannel` is the core of the default `kube-proxy`, so `kube-proxy` image is also required on both nodes. `coreDNS` run two copies on master node.
+
+
+#### [Flannel mechanism](https://www.jianshu.com/p/165a256fb1da)
+
+
+the data flow: **the sending message** go to VNC(virtual network card) `docker0` on host machine, which transfers to VNC `flannel0`. this process is P2P. the global `etcd` service maintain a iptables among nodes, which store the subnet range of each node. 2) the `flanneld` service on the special node package **the sending message** as UDP package, and delivery to target node, based on the iptables. 3) when the target node received the UDP package, it unpackage the message, and send to its `flannel0`, then transfer to its `docker0`. 
+
+
+1) after flanneld started，will create `flannel.1` virtual network card. the purpose of `flannel.1` is for across-host network, including package/unpackage UDP, and maintain iptables among the nodes. 
+
+
+
+2) each node also create `cni0` virtual network card, at the first time to run flannel CNI. the purpose of `cni0` is same as `docker0`, and it's a bridge network, used for communication in the same node. 
+
+
+![image](https://www.centos.bz/wp-content/uploads/2017/06/flannel-01.png)
+
+
+## deploy redis service
+
+
+#### create a k8s-redis image 
+
+```xml
+# use existing docker image as a base
+FROM ubuntu:16.04
+
+# Download and install dependency
+RUN apt-get update && apt-get install -y --no-install-recommends redis-server
+
+# EXPOSE the port to the Host OS
+EXPOSE 6379
+
+# Tell the image what command it has to execute as it starts as a container
+CMD ["redis-server"]
+```
+
+
+build the image and push to both nodes. 
+
+
+#### deploy a redis-deployment
+
+* create `redis-deployment.yaml`: 
+
+```xml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: load-balancer-example
+  name: kredis-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: load-balancer-example
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: load-balancer-example
+    spec:
+      containers:
+      - image: 10.20.181.119:5000/k8s_redis
+        name: kredis
+        ports:
+        - containerPort: 6379
+```
+
+* expose deployment as service
+
+```sh
+kubectl create ns test-busybox
+kubectl apply -f redis-deployment.yaml
+kubectl get deployments redis-deployment 	#display info of Deployment
+kubectl describe deployments redis-deployment
+kubectl get replicasets		#display info of ReplicaSet
+kubectl describe replicasets
+kubectl expose deployment redis-deployment --type=NodePort --name=my-redis  # create a service object that exposes the deployment 
+kubectl get services my-redis 
+kubectl describe services my-redis 
+kubectl get pods --output=wide
+#clean up later (afer step 3)
+kubectl delete services my-redis
+kubectl delete deployment redis-deployment
+```
+
+#### access as pod 
 
 ```sh 
-gwm@meng:~/k8s$ kubectl get pods 
-NAME                           READY   STATUS        RESTARTS   AGE
-hello-world-677ccfbb86-78fkx   0/1     Terminating   17         17h
-hello-world-677ccfbb86-svvfs   0/1     Terminating   17         17h
-hello-world-677ccfbb86-vlm77   0/1     Terminating   16         17h
+gwm@meng:~/k8s/alpine$ kubectl get pods --output=wide 
+NAME                                 READY   STATUS    RESTARTS   AGE   IP          NODE     NOMINATED NODE   READINESS GATES
+kredis-deployment-7567b7f4b7-wmqgd   1/1     Running   0          16h   10.4.1.18   ubuntu   <none>           <none>
+gwm@meng:~/k8s/alpine$ redis-cli -p 6379
+Could not connect to Redis at 127.0.0.1:6379: Connection refused
+not connected> 
+gwm@ubuntu:~$ redis-cli -p 6379
+Could not connect to Redis at 127.0.0.1:6379: Connection refused
+not connected> 
 ```
 
-sol:
+as we can see here, as `redis-server` as pod, won't expose any port. and pod-IP(10.4.1.18) is only accessible inside cluster
+
+#### access as service 
 
 ```sh
-kubectl delete pod <PODNAME> --grace-period=0 --force --namespace <NAMESPACE>
+kubectl get services --output=wide 
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE   SELECTOR
+kredis-deploy   NodePort    10.104.43.224   <none>        6379:31962/TCP   23h   app.kubernetes.io/name=load-balancer-example
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP          8d    <none>
+root@ubuntu:~# docker container inspect 60bfd6c5ccac  | grep 31962 
+root@ubuntu:~# redis-cli -p 31962 
+127.0.0.1:31962> 
+root@ubuntu:~# redis-cli -p 31962 -h 10.20.181.132 
+10.20.181.132:31962> 
+gwm@meng:~$ redis-cli -h 10.20.181.132 -p 31962 
+10.20.181.132:31962>
 ```
 
-the reason maybe due to [command in yaml](https://www.cnblogs.com/gaorong/p/9275795.html)
+so basically, we can access `redis` as service with the exposed port `31962`, and the host node's IP(10.20.181.132), (rather than the serivce cluster IP(10.104.43.224). 
+
+tips, only check service, won't tell on which node, the pod is running. so need check the pod, and get its node's IP. 
+
+with `docker StartExec` with `iptable FORWARD`, `redis-cli` on on both ubuntu node and meng node can access the service. 
+
+in summary:  if we deploy service as NodePort,  we suppose to access the service with its host node's IP and the exposed port, from external/outside of k8s.
 
 
+#### endpoints 
 
-#### check endpoints
+[k8s endpoints](https://theithollow.com/2019/02/04/kubernetes-endpoints/). what's the difference from endpoints to externalIP ? 
 
 
 ```sh
 kubectl get endpoints 
-kubectl get svc ? 
+NAME         ENDPOINTS           AGE
+kubernetes   10.20.180.12:6443   8d
 ```
 
-* endpoints vs externalIP 
+it gives us the kubernetes endpoints, which is avaiable on both meng and ubuntu nodes.
+
+```sh
+gwm@meng:~$ curl http://10.20.180.12:6443 
+Client sent an HTTP request to an HTTPS server.
+gwm@ubuntu:~$ curl http://10.20.180.12:6443 
+Client sent an HTTP request to an HTTPS server.
+```
+
+not every service has `ENDPOINTS`, which gives the way to access outside of the cluster. but `NodePort` type service can bind to the running pod's host IP with the exported port.
 
 
-[k8s endpoints](https://theithollow.com/2019/02/04/kubernetes-endpoints/)
+whenever [expose k8s service](https://yq.aliyun.com/articles/679802) to either internally or externally, it goes through `kube-proxy`. when `kube-proxy` do network transfer, it has two ways: Userspace or Iptables.
 
-for services, we could use `labels` to match a frontend service with a backend pod automatically by using a selector. if any new pods had a specific label, the service know how to send traffic to. 
+clusterIP, is basically expose internnaly, with the service's cluster IP; while nodePort type, is basically bind the service's port to each node, so we can access the service from each node with the node's IP and this fixed port. 
 
 
+#### apiserver 
+
+[core of k8s: API Server](https://www.jianshu.com/p/a25e9e613f2c), is the RESTful API for resource POST/GET/DELETE/UPDATE. we can access through: 
+
+
+```sh
+curl apiserver_ip:apiserver_port/api
+curl apiserver_ip:apiserver_port/api/v1/pods
+curl apiserver_ip:apiserver_port/api/v1/services
+CURL apiserver_ip:apiserver_port/api/v1/proxy/nodes/{name}/pods/
+```
+
+*  check apiServer IP
+
+```sh 
+kubectl get pods -n kube-system --output=wide
+kube-apiserver-meng            1/1     Running   2          8d     10.20.180.12    meng     <none>           <none>
+```
+
+if check the `LISTEN` ports on both worker and master nodes, there are many k8s related ports, some are accessible, while some are not. 
 
 
 ## k8s dashboard 
@@ -343,65 +468,6 @@ reports error:
   Warning  Unhealthy  5m31s (x2 over 6m11s)  kubelet, ubuntu    Liveness probe failed: Get https://10.4.0.22:8443/: dial tcp 10.4.0.22:8443: connect: connection refused
 
 ```
-
-
-* how to change k8s  pods nework cidr, afte initialization ?
-
-	kubeadm init --pod-network-cidr=10.4.0.0/16 --cluster_dns=10.3.0.10 
-
-
-#### kubectl config 
-
-
-* [reconfigure a node's kubelet in a live cluster](https://kubernetes.io/docs/tasks/administer-cluster/reconfigure-kubelet/#automatic-rbac-rules-for-node-authorizer)
-
-Basic workflow overview
-
-The basic workflow for configuring a kubelet in a live cluster is as follows:
-
-    Write a YAML or JSON configuration file containing the kubelet’s configuration.
-    Wrap this file in a ConfigMap and save it to the Kubernetes control plane.
-    Update the kubelet’s corresponding Node object to use this ConfigMap.
-
-
-
-Q: what is the API server, how to configure its IP ?
-
-
-* dump configure file of each node 
-
-```sh
-  NODE_NAME="the-name-of-the-node-you-are-reconfiguring"; curl -sSL "http://localhost:8001/api/v1/nodes/${NODE_NAME}/proxy/configz" | jq '.kubeletconfig|.kind="KubeletConfiguration"|.apiVersion="kubelet.config.k8s.io/v1beta1"' > kubelet_configz_${NODE_NAME}
-```
-
-in our cluster, we have `ubuntu` and `meng`(as leader) two nodes.
-
-but there is a little difference in their configure:
-
-```sh
-<   "clusterDomain": "gwm.l3",
----
->   "clusterDomain": "cluster.local",
-40c40
-<     "10.3.0.10"
----
->     "10.96.0.10"
-
-```
-
-why always get `error: Missing or incomplete configuration info.  Please point to an existing, complete config file` when running `kubectl` command at working node ? 
-
-
-[organizing cluster accesss using kubecnfig files](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
- 
-
-By default, kubectl looks for a file named config in the $HOME/.kube directory
-
-
-
-
-
-
 
 
 ## understand pod in k8s
@@ -458,8 +524,6 @@ The Ingress controller is deployed as a Docker container on top of Kubernetes. I
 * check running pods on which node 
 
 
-
-
 #### resolv.conf in k8s pod 
 
 run as interactive into a k8s pod, then check its `resolv.conf`:
@@ -489,7 +553,6 @@ IP:                   10.4.0.6
 ```
 
 when start `coreDNS`, is actually used to relace `kube-dns`. 
-
 
 
 
@@ -546,7 +609,7 @@ service has four type:
 if there are external IPs that route to one or more cluster nodes, services can be exposed on those externalIPs. 
 
 
-## can' access nodePort service outside cluster
+
 
 
 
@@ -582,12 +645,6 @@ you need `service object` since pods from deployment object can be killed, scale
 
 
 
-## understand network policies 
-
-
-[network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
-
-
 
 
 
@@ -600,6 +657,23 @@ you need `service object` since pods from deployment object can be killed, scale
 [deploy tiny web server to k8s](https://jekhokie.github.io/k8s/busybox/helm/2020/04/23/small-web-server-to-k8s.html)
 
 [k8s production best practices](https://learnk8s.io/production-best-practices)
+
+[cni readme](https://github.com/containernetworking/cni/blob/master/SPEC.md)
+
+[configure network plugins](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/):
+
+[k8s与flannel网络原理](https://www.centos.bz/2017/06/k8s-flannel-network/)
+
+[清晰脱俗的直解K8S网络](https://network.51cto.com/art/201908/601109.htm)
+
+ [k8s: iptables and docker0](https://shogokobayashi.com/2018/09/27/k8s-ex01-iptables-and-docker/)
+
+ [linux docker and iptables](https://blog.csdn.net/whatday/article/details/105197120)
+
+[controlling access to k8s APIserver](https://kubernetes.io/docs/reference/access-authn-authz/controlling-access/)
+
+[k8s network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+
 
 
 

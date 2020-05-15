@@ -181,7 +181,6 @@ so modify `forward line` to `forward . 10.3.0.10`.  or to delete `loop` service 
 [a very good explain](https://stackoverflow.com/questions/52645473/coredns-fails-to-run-in-kubernetes-cluster)
 
 
-
 #### test cluster 
 
 [test sample](https://www.bookstack.cn/read/follow-me-install-kubernetes-cluster-1.8.x/08.%E9%AA%8C%E8%AF%81%E9%9B%86%E7%BE%A4%E5%8A%9F%E8%83%BD.md)
@@ -195,6 +194,7 @@ so modify `forward line` to `forward . 10.3.0.10`.  or to delete `loop` service 
  sudo systemctl stop kubelet kube-proxy flanneld docker
 
 ```
+
 
 ## understand CNI (container network interface)
 
@@ -215,8 +215,6 @@ bridge
 ```
 
 CNI brings a general network framework, used to manage network configure and network resources. 
-
-
 
 
 ####  coreDNS
@@ -241,7 +239,20 @@ systemctl daemon-reload
 systemctl restart docker 
 ```
 
-#### 
+
+## flannel mis-usage 
+
+
+in the settings above, I manually copy `flannel-cni.conflist` and `/run/flannel/subnet.env` to worker node every time, whenever reboot the worker node. if else, the cluster bother the worker node is `NotReady`.  as we deploy the cluster with `kubectl`, which is kind of a swarm service deploy tool. so the right way to use `flannel` should have all `k8s.gcr.io/kube-proxy`, `quay.io/coreos/flannel` images at worker node as well. 
+
+for version1.17+, `flannel` replace the default `kube-proxy`, but it still requires to have `kube-proxy` running in each node(kubelet). 
+
+after restart kubelet, checking `pods -n kube-system`, it shows `kube-proxy` and `flannel` on each node has a `Running` status. `coreDNS` services has run the same size of copies as the number of nodes, but we can find that all of them are running on leader node.
+
+
+
+
+
 
 
 
