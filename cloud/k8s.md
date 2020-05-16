@@ -443,9 +443,8 @@ if check the `LISTEN` ports on both worker and master nodes, there are many k8s 
 
 ## k8s dashboard 
 
-[k8s dashboard](https://github.com/kubernetes/dashboard)
 
-[dashboard doc in cn](https://kuboard.cn/install/install-k8s-dashboard.html#%E5%AE%89%E8%A3%85)
+the following is from [dashboard doc in cn](https://kuboard.cn/install/install-k8s-dashboard.html#%E5%AE%89%E8%A3%85)
 
 * download src
 
@@ -455,18 +454,106 @@ docker pull k8scn/kubernetes-dashboard-amd64
 docker tag k8scn/kubernetes-dashboard-amd64:latest k8s.gcr.io/kubernetes-dashboard-amd64:latest 
 ```
 
-* create dashboard
+
+* clear old dashboard resources 
+
+if there are old running dashboard, can clear first. 
+
+```sh
+kubectl get clusterroles kubernetes-dashboard --output=wide 
+kubectl get clusterrolebindings kubernetes-dashboard  --output=wide 
+kubectl delete clusterroles kubernetes-dashboard 
+kubectl delete clusterrolebindings kubernetes-dashboard 
+kubectl delete ns kubernetes-dashboard
+```
+
+* start a fresh dashboard
 
 ```sh
 kubectl apply -f https://kuboard.cn/install-script/k8s-dashboard/v2.0.0-beta5.yaml 
 kubectl apply -f https://kuboard.cn/install-script/k8s-dashboard/auth.yaml
 ```
 
-reports error:
+or src from [github/dashboard/recommended.yaml](https://github.com/kubernetes/dashboard/blob/master/aio/deploy/recommended.yaml), and run:
 
 ```sh
-  Warning  Unhealthy  5m31s (x2 over 6m11s)  kubelet, ubuntu    Liveness probe failed: Get https://10.4.0.22:8443/: dial tcp 10.4.0.22:8443: connect: connection refused
+kubectl create -f admin-user.yaml
+kubectl create -f recommended.yaml
+```
 
+`admin-user.yaml` is defined wih `admin authorization`. if not define or applied, when login to dashboard web UI, it gives some errors like:
+
+
+```sh
+namespaces is forbidden: User "system:serviceaccount:kubernetes-dashboard:kubernetes-dashboard" cannot list resource "namespaces" in API group "" at the cluster scope
+```
+
+so there are two tips during creating dashboard.
+
+- auth/admin-user.yaml is required
+
+- add NodePort type service to expose dashboard. if not, can' access dashboard on host machine. 
+
+
+refer from [deploy dashboard && metrics-server](https://tomoyadeng.github.io/blog/2019/08/11/k8s-dashboard-openssl/index.html)
+
+- create `external-http.yaml` to expose NodePort service 
+
+- create `admin-user.yaml` for admin manage
+
+
+* get the ServiceAccount token
+
+```sh
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+```
+
+* go to `https://nodeIP.6443`, tips, dashboard service is using `https`
+
+
+* login dashboard
+
+there are two ways to auth to login dashboard: 
+
+-- kubeconfig, the configure to access the cluster
+
+-- token, every service account has a secret with valid Bearer Token, that can used to login to Dashboard. 
+
+* system checks
+
+```sh
+kubectl get secrets -n kubernetes-dashboard
+kubectl get serviceaccount -n kubernetes-dashboard
+kubectl describe serviceaccount kubernetes-dashboard  -n kubernetes-dashboard
+```
+
+#### metrics-server
+
+metrics-server is a replace of Heapster. 
+
+```sh
+kubectl edit deploy -n kubernetes-dashboard dashboard-metrics-scraper 
+```
+
+
+#### roles 
+
+the right way to create a role:
+
+
+* create a ServiceAccount 
+* bind a role for the ServiceAccount(cluster-admin role is needed)
+* make a ClusterRoleBinding for ServiceAccount 
+
+
+#### [list all container images in all ns](https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images/)
+
+
+```sh
+kubectl get pods --all-namespaces -o jsonpath="{..image}" |\
+tr -s '[[:space:]]' '\n' |\
+sort |\
+uniq -c
 ```
 
 
@@ -611,9 +698,6 @@ if there are external IPs that route to one or more cluster nodes, services can 
 
 
 
-
-
-
 ## deploy service/pod with yaml
 
 the previous sample `busybox`, is running as `pod`, through  `kubectl run busybox` ?  so there is no external 
@@ -672,9 +756,9 @@ you need `service object` since pods from deployment object can be killed, scale
 
 [controlling access to k8s APIserver](https://kubernetes.io/docs/reference/access-authn-authz/controlling-access/)
 
-[k8s network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+[understand RBAC auth](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 
-
+[official web UI dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
 
 
 
