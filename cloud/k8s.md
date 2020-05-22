@@ -639,7 +639,7 @@ Labels:               k8s-app=kube-dns
 IP:                   10.4.0.6
 ```
 
-when start `coreDNS`, is actually used to relace `kube-dns`. 
+when start `coreDNS`, is actually used to replace `kube-dns`. 
 
 
 
