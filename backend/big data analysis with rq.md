@@ -14,6 +14,22 @@ take it back, `data pipeline` is a heavy data IO work, is it really smart to spl
 traditionally, heavy data IO work is common run in `batch processing`, disregarding network issues, and it's better to run directly in memory/cache. so I go to [rq](https://github.com/rq/rq)
 
 
+## interprocess communication in distributed system
+
+`MPI` is the standard for IPC in HPC apps, of course there are `Linux IPC` libs, which brings more low-level ipc APIs. `MPI` apps mostly run on high performance computing cluster, which has the samilar API e.g. `Allreduce` as `Hadoop/MapReduce`, while the difference `MPI/allReduce` doesn't tolerate failure, which means any node failed, the `MPI` apps failed. Which is the foundmental difference from HPC to distributed system nowadays, really popular as the new infrastructure for cloud and AI. 
+
+in the distributed system, there are a few ways to do interprocess communication:
+
+*  **RESTful protocol**, such as TCP, UDP, websocket. 
+
+* **async communication**, there are different ways to implement async interprocess communication, one way is `message queue`, of course many language, e.g. js, go have some light-weight libs/framework to support ansyc communication interprocessly.
+
+* **rpc**, [thrift]() is an Apache project, [grpc]() is high efficient with protobuf, but it doesn't support well service discovery/load balance mechanism inside, which is a limitation in cloud-native applications.  [dubbo]() has a better design for service discovery and load balance, the message type by default is `json`. so all of these can be the corner-stone service in modern micro service envs. also the common `micro-service framework`, e.g. Spring Cloud has interprocess communication component as well.
+
+
+for data hungry services, `batch processing` frameworks, e.g. Spring Batch, Linux Parallel should also consider.
+
+
 ## rq 
 
 the following is from [rq doc](http://python-rq.org/docs/)
@@ -189,5 +205,19 @@ since the output of `mf4` jobs is the input of `aeb`, so we need `runners`, simi
 ## refer
 
 [xiaorui blog: rq](http://xiaorui.cc/)
+
+[微服架构中的进程间通信](https://www.cnblogs.com/jpwahaha/p/10601096.html)
+
+[微服务架构](https://www.cnblogs.com/imyalost/p/6792724.html)
+
+[使用gRPC构建微服务](https://www.tuicool.com/articles/QreqUnU)
+
+[微服务, 通信协议对比](https://blog.csdn.net/fly910905/article/details/100016003)
+
+[理解批处理的关键设计](https://cloud.tencent.com/developer/article/1081697)
+
+[spring batch 批处理](https://www.cnblogs.com/rookiemzl/p/9788002.html)
+
+
 
 
